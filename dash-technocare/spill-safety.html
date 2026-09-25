@@ -1,0 +1,919 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Sensitizer spill safety sample dashboard">
+  <title>Sensitizer · Spill Safety</title>
+  <style>
+    :root {
+      --bg: #f3f1e8;
+      --ink: #183e34;
+      --card: #fcfbf7;
+      --line: #d5ddca;
+      --muted: #63776d;
+      --accent: #dce879;
+      --jade: #dcefe6;
+      --coral: #f5e0d9;
+      --mono: ui-monospace, monospace;
+      --sans: Inter, system-ui, sans-serif
+    }
+
+    * {
+      box-sizing: border-box
+    }
+
+    body {
+      margin: 0;
+      min-width: 320px;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: var(--sans)
+    }
+
+    button,
+    a {
+      font: inherit
+    }
+
+    .sidebar {
+      position: fixed;
+      inset: 0 auto 0 0;
+      width: 248px;
+      z-index: 5;
+      display: flex;
+      flex-direction: column;
+      padding: 26px 20px;
+      background: var(--ink);
+      color: #f8f7e9;
+      transition: transform .2s
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 11px
+    }
+
+    .brand-mark {
+      width: 38px;
+      height: 38px;
+      display: grid;
+      place-items: center;
+      border-radius: 11px;
+      background: var(--accent);
+      color: var(--ink);
+      font-weight: 800;
+      font-size: 20px
+    }
+
+    .brand-name {
+      font-size: 15px;
+      font-weight: 800
+    }
+
+    .brand-caption,
+    .mono,
+    .eyebrow {
+      font-family: var(--mono)
+    }
+
+    .brand-caption {
+      margin-top: 4px;
+      color: #9db2a7;
+      font-size: 9px;
+      letter-spacing: .15em;
+      text-transform: uppercase
+    }
+
+    .brand-state {
+      width: 7px;
+      height: 7px;
+      margin-left: auto;
+      border-radius: 50%;
+      background: var(--accent)
+    }
+
+    .workspace-label {
+      margin: 40px 10px 12px;
+      color: #9db2a7;
+      font: 10px var(--mono);
+      letter-spacing: .14em;
+      text-transform: uppercase
+    }
+
+    .nav-list {
+      display: grid;
+      gap: 6px
+    }
+
+    .nav-link {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      min-height: 42px;
+      padding: 10px 11px;
+      border-radius: 9px;
+      color: #c8d6cf;
+      text-decoration: none;
+      font-size: 12px;
+      font-weight: 700
+    }
+
+    .nav-link:hover {
+      background: #254c40
+    }
+
+    .nav-link.active {
+      background: var(--accent);
+      color: var(--ink)
+    }
+
+    .nav-icon {
+      width: 20px;
+      text-align: center
+    }
+
+    .nav-arrow,
+    .nav-badge {
+      margin-left: auto
+    }
+
+    .nav-badge {
+      padding: 2px 6px;
+      border-radius: 99px;
+      background: #c65e4f;
+      font: 10px var(--mono)
+    }
+
+    .sidebar-note {
+      margin-top: auto;
+      padding-top: 18px;
+      border-top: 1px solid #31594c;
+      color: #a9bbb1;
+      font-size: 10px;
+      line-height: 1.7
+    }
+
+    .sidebar-code {
+      margin-top: 14px;
+      font: 9px var(--mono)
+    }
+
+    .sidebar-close {
+      display: none
+    }
+
+    .main {
+      min-height: 100vh;
+      margin-left: 248px
+    }
+
+    .topbar {
+      min-height: 76px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 16px 48px;
+      border-bottom: 1px solid var(--line)
+    }
+
+    .menu-toggle {
+      display: none
+    }
+
+    .breadcrumb {
+      display: flex;
+      gap: 9px;
+      color: var(--muted);
+      font-size: 11px
+    }
+
+    .breadcrumb a {
+      text-decoration: none
+    }
+
+    .topbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      margin-left: auto;
+      color: var(--muted);
+      font-size: 10px
+    }
+
+    .connection-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #c65e4f
+    }
+
+    .demo-badge {
+      padding: 7px 9px;
+      border: 1px solid var(--line);
+      border-radius: 99px;
+      background: var(--card);
+      font: 9px var(--mono);
+      text-transform: uppercase
+    }
+
+    .page-content {
+      max-width: 1280px;
+      margin: auto;
+      padding: 44px 48px 38px
+    }
+
+    .page-heading {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 24px;
+      padding-bottom: 27px;
+      border-bottom: 1px solid var(--line)
+    }
+
+    h1 {
+      margin: 10px 0 0;
+      font-size: clamp(2rem, 4vw, 3.2rem);
+      line-height: 1;
+      letter-spacing: -.07em
+    }
+
+    .page-heading p {
+      max-width: 600px;
+      margin: 14px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.7
+    }
+
+    .eyebrow {
+      color: var(--muted);
+      font-size: 9px;
+      letter-spacing: .14em;
+      text-transform: uppercase
+    }
+
+    .eyebrow.accent:before {
+      content: "";
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      margin-right: 8px;
+      border-radius: 50%;
+      background: #718c35
+    }
+
+    .panel-grid {
+      display: grid;
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+      gap: 18px;
+      margin-top: 24px
+    }
+
+    .panel {
+      min-width: 0;
+      padding: 22px;
+      border: 1px solid var(--line);
+      border-radius: 13px;
+      background: var(--card);
+      box-shadow: 0 12px 26px #183e340e
+    }
+
+    .span-5 {
+      grid-column: span 5
+    }
+
+    .span-7 {
+      grid-column: span 7
+    }
+
+    .panel-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 14px
+    }
+
+    .panel-title {
+      display: flex;
+      gap: 11px
+    }
+
+    .panel-icon {
+      width: 35px;
+      height: 35px;
+      display: grid;
+      place-items: center;
+      flex: none;
+      border-radius: 9px;
+      background: var(--coral);
+      color: #b45b4c
+    }
+
+    .panel-icon.jade {
+      background: var(--jade);
+      color: #337964
+    }
+
+    .panel h2 {
+      margin: 4px 0 0;
+      font-size: 17px
+    }
+
+    .panel-detail {
+      margin: 5px 0 0;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.5
+    }
+
+    .status-pill {
+      display: inline-flex;
+      gap: 7px;
+      align-items: center;
+      padding: 6px 9px;
+      border-radius: 99px;
+      color: #28715e;
+      background: var(--jade);
+      font-size: 10px;
+      font-weight: 700;
+      white-space: nowrap
+    }
+
+    .status-pill:before {
+      content: "";
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: currentColor
+    }
+
+    .value-row {
+      display: flex;
+      align-items: end;
+      gap: 8px;
+      margin-top: 10px
+    }
+
+    .value {
+      font: 500 40px/1 var(--mono);
+      letter-spacing: -.08em
+    }
+
+    .unit {
+      margin-bottom: 4px;
+      color: var(--muted);
+      font: 12px var(--mono)
+    }
+
+    .range-graphic {
+      position: relative;
+      display: grid;
+      min-height: 230px;
+      place-items: center;
+      overflow: hidden;
+      border-radius: 9px;
+      background: #e9eee0
+    }
+
+    .range-ring {
+      position: absolute;
+      border: 1px solid #aab89b;
+      border-radius: 50%
+    }
+
+    .range-ring.one {
+      width: 112px;
+      height: 112px
+    }
+
+    .range-ring.two {
+      width: 76px;
+      height: 76px
+    }
+
+    .detail-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-top: 19px;
+      padding-top: 15px;
+      border-top: 1px solid var(--line)
+    }
+
+    .detail-value {
+      margin-top: 5px;
+      color: #426a58;
+      font: 11px var(--mono)
+    }
+
+    .spill-scale {
+      position: relative;
+      height: 11px;
+      margin-top: 20px;
+      border-radius: 99px;
+      background: linear-gradient(90deg, #bdd77b 0 58%, #ead17d 58% 82%, #e6a89b 82%)
+    }
+
+    .spill-marker {
+      position: absolute;
+      top: -4px;
+      left: 3%;
+      width: 2px;
+      height: 19px;
+      background: var(--ink)
+    }
+
+    .scale-labels,
+    .legend-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      margin-top: 9px;
+      color: var(--muted);
+      font-size: 9px
+    }
+
+    .legend-row {
+      justify-content: flex-start;
+      flex-wrap: wrap
+    }
+
+    .legend-dot {
+      display: inline-block;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #bdd77b
+    }
+
+    .legend-maintenance {
+      background: #ead17d
+    }
+
+    .legend-critical {
+      background: #e6a89b
+    }
+
+    .check-line {
+      margin-top: 12px;
+      color: #498067;
+      font-size: 11px
+    }
+
+    .demo-note {
+      margin-top: 20px;
+      padding: 11px 12px;
+      border-radius: 9px;
+      background: #edf2e4;
+      color: #456a58;
+      font-size: 11px;
+      line-height: 1.6
+    }
+
+    .readiness-details {
+      display: grid;
+      gap: 9px;
+      margin-top: 18px;
+      padding-top: 17px;
+      border-top: 1px solid var(--line)
+    }
+
+    .readiness-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      color: var(--muted);
+      font-size: 11px
+    }
+
+    .readiness-row strong {
+      color: var(--ink);
+      font: 11px var(--mono)
+    }
+
+    .filter-button,
+    .ghost-button {
+      padding: 8px 11px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--card);
+      color: #426657;
+      font-size: 10px;
+      font-weight: 700
+    }
+
+    .filter-button.selected {
+      background: #eff2d7
+    }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 12px;
+      margin-top: 20px
+    }
+
+    .filter-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px
+    }
+
+    .event-list {
+      margin-top: 18px;
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      overflow: hidden;
+      background: #f0f1e9
+    }
+
+    .event-row {
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      gap: 18px;
+      padding: 14px;
+      border-bottom: 1px solid var(--line)
+    }
+
+    .event-row:last-child {
+      border: 0
+    }
+
+    .event-meta {
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 10px
+    }
+
+    .event-value,
+    .event-time {
+      font: 10px var(--mono)
+    }
+
+    .event-time {
+      color: var(--muted)
+    }
+
+    .empty-state {
+      padding: 26px;
+      color: var(--muted);
+      font-size: 12px;
+      text-align: center
+    }
+
+    .footer {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 28px;
+      padding-top: 16px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 9px
+    }
+
+    .footer-demo:before {
+      content: "";
+      display: inline-block;
+      width: 7px;
+      height: 7px;
+      margin-right: 8px;
+      border-radius: 50%;
+      background: #c65e4f
+    }
+
+    .drawer-backdrop {
+      display: none
+    }
+
+    @media(max-width:1040px) {
+      .sidebar {
+        width: 224px
+      }
+
+      .main {
+        margin-left: 224px
+      }
+
+      .topbar,
+      .page-content {
+        padding-left: 30px;
+        padding-right: 30px
+      }
+
+      .span-5,
+      .span-7 {
+        grid-column: span 12
+      }
+    }
+
+    @media(max-width:900px) {
+      .sidebar {
+        width: min(280px, 86vw);
+        transform: translateX(-100%)
+      }
+
+      .sidebar.open {
+        transform: translateX(0)
+      }
+
+      .sidebar-close {
+        display: block;
+        margin-left: auto;
+        border: 0;
+        background: transparent;
+        color: white;
+        font-size: 22px
+      }
+
+      .drawer-backdrop {
+        display: block;
+        position: fixed;
+        inset: 0;
+        z-index: 4;
+        background: #183e3460;
+        opacity: 0;
+        pointer-events: none
+      }
+
+      .drawer-backdrop.show {
+        opacity: 1;
+        pointer-events: auto
+      }
+
+      .main {
+        margin: 0
+      }
+
+      .menu-toggle {
+        display: grid;
+        width: 38px;
+        height: 38px;
+        place-items: center;
+        border: 1px solid var(--line);
+        border-radius: 9px;
+        background: var(--card)
+      }
+
+      .topbar {
+        min-height: 68px;
+        padding: 14px 18px
+      }
+
+      .breadcrumb {
+        display: none
+      }
+
+      .topbar-actions>.connection-dot,
+      .topbar-actions>span:nth-child(2) {
+        display: none
+      }
+
+      .page-content {
+        padding: 31px 18px
+      }
+
+      .page-heading {
+        display: block
+      }
+
+      .panel {
+        padding: 18px
+      }
+
+      .footer {
+        flex-direction: column;
+        gap: 8px
+      }
+
+      .event-row {
+        grid-template-columns: 1fr auto
+      }
+
+      .event-time {
+        grid-column: 1
+      }
+    }
+  </style>
+  <style>
+    @media(max-width:600px) {
+      [style*="grid-template-columns"] {
+        grid-template-columns: 1fr !important
+      }
+    }
+  </style>
+  <link rel="icon" href="data:,">
+</head>
+
+<body>
+  <div class="drawer-backdrop"></div>
+  <aside class="sidebar" aria-label="Workspace navigation">
+    <div class="brand">
+      <div class="brand-mark">S</div>
+      <div>
+        <div class="brand-name">Sensitizer</div>
+        <div class="brand-caption">operations console</div>
+      </div><span class="brand-state"></span><button class="sidebar-close" aria-label="Close menu">×</button>
+    </div>
+    <div class="workspace-label">Workspace</div>
+    <nav class="nav-list"><a class="nav-link" href="./index.html"><span class="nav-icon">◉</span>Overview<span class="nav-arrow">›</span></a><a class="nav-link"
+        href="./hand-detection.html"><span class="nav-icon">⌖</span>Hand Detection<span class="nav-arrow">›</span></a><a class="nav-link"
+        href="./sanitizer-supply.html"><span class="nav-icon">◈</span>Sanitizer Supply<span class="nav-arrow">›</span></a><a class="nav-link active"
+        href="./spill-safety.html"><span class="nav-icon">≈</span>Spill Safety<span class="nav-arrow">›</span></a><a class="nav-link"
+        href="./notifications.html"><span class="nav-icon">♧</span>Notifications<span class="nav-badge" data-unread-badge>3</span></a><a class="nav-link"
+        href="./device-context.html"><span class="nav-icon">▤</span>Device &amp; Context<span class="nav-arrow">›</span></a></nav>
+    <div class="sidebar-note">ⓘ Demo readings only<br>There is no live hardware connection in this workspace.<div class="sidebar-code">TechnoCare</div>
+    </div>
+  </aside>
+  <main class="main">
+    <header class="topbar"><button class="menu-toggle" aria-label="Open workspace menu" aria-expanded="false">☰</button>
+      <div class="breadcrumb"><a href="./index.html">SENSITIZER</a><span>›</span><span>Spill Safety</span></div>
+      <div class="topbar-actions"><span class="connection-dot"></span><span>no live connection</span><span class="demo-badge">demo readings</span></div>
+    </header>
+    <div class="page-content">
+      <section class="page-heading">
+        <div>
+          <div class="eyebrow accent">03 / SPILL CHAMBER</div>
+          <h1>Spill safety</h1>
+          <p>Keep moisture status, maintenance thresholds and response context together
+          </p>
+        </div><span class="status-pill">Reading ready</span>
+      </section>
+      <div class="panel-grid">
+        <section class="panel span-5">
+          <div class="panel-header">
+            <div class="panel-title">
+              <div class="panel-icon">≈</div>
+              <div>
+                <div class="eyebrow">LEAKAGE STATUS</div>
+                <h2>Leakage monitoring</h2>
+              </div>
+            </div><span class="status-pill">No leakage</span>
+          </div>
+          <div class="range-graphic">
+            <div class="range-ring one"></div>
+            <div class="range-ring two"></div>
+            <div class="panel-icon jade" style="width:62px;height:62px;border-radius:50%;z-index:1">✓</div><strong
+              style="z-index:1;margin-top:12px;font-size:23px">No leakage</strong><span style="z-index:1;margin-top:5px;color:var(--muted);font-size:11px">No
+              spill in the supplied reading</span>
+          </div>
+        </section>
+        <section class="panel span-7">
+          <div class="panel-header">
+            <div class="panel-title">
+              <div class="panel-icon">▣</div>
+              <div>
+                <div class="eyebrow">CHAMBER MONITORING</div>
+                <h2>Moisture level</h2>
+                <p class="panel-detail">Reference thresholds for a 10 mm chamber</p>
+              </div>
+            </div><span class="status-pill">Nominal</span>
+          </div>
+          <div style="display:grid;grid-template-columns:minmax(130px,.42fr) minmax(220px,1fr);gap:22px;margin-top:25px;align-items:center">
+            <div>
+              <div class="eyebrow">Sample depth</div>
+              <div class="value-row"><span class="value">0.2</span><span class="unit">mm</span></div>
+              <div class="check-line">Chamber clear</div>
+            </div>
+            <div>
+              <div style="display:flex;justify-content:space-between"><span class="eyebrow">Threshold map</span><span class="mono"
+                  style="font-size:9px;color:var(--muted)">0.2 / 10 mm max</span></div>
+              <div class="spill-scale">
+                <div class="spill-marker"></div>
+              </div>
+              <div class="scale-labels"><span>normal</span><span>maintenance</span><span>critical</span></div>
+              <div class="legend-row"><span><i class="legend-dot"></i>0—3 mm</span><span><i class="legend-dot legend-maintenance"></i>3—8 mm</span><span><i
+                    class="legend-dot legend-critical"></i>8+ mm</span></div>
+            </div>
+          </div>
+          <div class="detail-grid">
+            <div>
+              <div class="eyebrow">maintenance</div>
+              <div class="detail-value">3.0 mm</div>
+            </div>
+            <div>
+              <div class="eyebrow">critical</div>
+              <div class="detail-value">8.0 mm</div>
+            </div>
+            <div>
+              <div class="eyebrow">last drain</div>
+              <div class="detail-value">—</div>
+            </div>
+            <div>
+              <div class="eyebrow">trend</div>
+              <div class="detail-value">stable</div>
+            </div>
+          </div>
+        </section>
+        <section class="panel span-5">
+          <div class="panel-header">
+            <div class="panel-title">
+              <div class="panel-icon jade">✓</div>
+              <div>
+                <div class="eyebrow">MONITORING CONTROL</div>
+                <h2>Leakage monitoring</h2>
+              </div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:20px;padding:17px 0;border-bottom:1px solid var(--line)">
+            <div><strong style="display:block;font-size:12px">Monitoring display</strong><span class="panel-detail">Local preference for the prototype
+                view</span></div><button class="filter-button selected" id="monitoring" type="button">On</button>
+          </div>
+          <div class="demo-note" id="monitorNote">The dashboard is showing the active monitoring state. This preference changes the display only; it does not
+            control hardware.</div>
+        </section>
+        <section class="panel span-7">
+          <div class="panel-header">
+            <div>
+              <div class="eyebrow">SPILL ACTIVITY</div>
+              <h2>Sample events</h2>
+              <p class="panel-detail">Review example events against the response bands.</p>
+            </div><button class="ghost-button" id="clearEvents">Clear sample events</button>
+          </div>
+          <div class="toolbar">
+            <div class="filter-group" role="group" aria-label="Filter spill events"><button class="filter-button selected" data-filter="all">All
+                events</button><button class="filter-button" data-filter="clear">Clear</button><button class="filter-button"
+                data-filter="maintenance">Maintenance</button><button class="filter-button" data-filter="critical">Critical</button></div><span class="eyebrow"
+              id="shownCount">3 shown</span>
+          </div>
+          <div class="event-list" id="eventList"></div>
+        </section>
+      </div>
+      <footer class="footer"><span class="footer-demo">Demo mode · values are illustrative, not live telemetry</span><span class="mono">TechnoCare</span>
+      </footer>
+    </div>
+  </main>
+  <script>
+    (() => {
+      const events = [{
+        type: 'clear',
+        title: 'Chamber clear sample',
+        detail: 'Moisture stayed within the normal band.',
+        value: '0.2 mm',
+        time: 'Today · 14:32'
+      }, {
+        type: 'maintenance',
+        title: 'Maintenance threshold example',
+        detail: 'Illustrative event retained for procedure review.',
+        value: '3.0 mm',
+        time: 'Yesterday · 11:18'
+      }, {
+        type: 'critical',
+        title: 'Critical threshold example',
+        detail: 'Illustrative event retained for escalation review.',
+        value: '8.0 mm',
+        time: 'Sep 20 · 09:06'
+      }];
+      let filter = 'all';
+      const list = document.querySelector('#eventList'),
+        count = document.querySelector('#shownCount');
+      const draw = () => {
+        const shown = events.filter(e => filter === 'all' || e.type === filter);
+        count.textContent = shown.length + ' shown';
+        list.innerHTML = shown.length ? shown.map(e =>
+          `<div class="event-row"><div><strong>${e.title}</strong><div class="event-meta">${e.detail}</div></div><div class="event-value">${e.value}</div><div class="event-time">${e.time}</div></div>`
+          ).join('') : '<div class="empty-state">No spill events match this filter. The empty state is local to this sample list.</div>'
+      };
+      draw();
+      document.querySelectorAll('[data-filter]').forEach(b => b.addEventListener('click', () => {
+        filter = b.dataset.filter;
+        document.querySelectorAll('[data-filter]').forEach(x => x.classList.toggle('selected', x === b));
+        draw()
+      }));
+      document.querySelector('#clearEvents').addEventListener('click', () => {
+        events.length = 0;
+        draw()
+      });
+      const monitor = document.querySelector('#monitoring');
+      monitor.addEventListener('click', () => {
+        const on = monitor.textContent === 'On';
+        monitor.textContent = on ? 'Off' : 'On';
+        monitor.classList.toggle('selected', !on);
+        document.querySelector('#monitorNote').textContent = (on ? 'The dashboard is showing monitoring as off.' :
+          'The dashboard is showing the active monitoring state.') + ' This preference changes the display only; it does not control hardware.'
+      });
+      const side = document.querySelector('.sidebar'),
+        back = document.querySelector('.drawer-backdrop'),
+        open = document.querySelector('.menu-toggle'),
+        close = document.querySelector('.sidebar-close'),
+        set = v => {
+          side.classList.toggle('open', v);
+          back.classList.toggle('show', v);
+          open.setAttribute('aria-expanded', String(v))
+        };
+      open.addEventListener('click', () => set(true));
+      close.addEventListener('click', () => set(false));
+      back.addEventListener('click', () => set(false));
+      document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') set(false)
+      });
+      console.info('Sensitizer standalone HTML loaded. Use F12 → Sources to inspect this page code.');
+    })();
+  </script>
+</body>
+
+</html>
