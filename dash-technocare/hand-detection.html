@@ -1,0 +1,905 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Sensitizer hand detection sample dashboard">
+  <title>Sensitizer · Hand Detection</title>
+  <style>
+    :root {
+      --bg: #f3f1e8;
+      --ink: #183e34;
+      --card: #fcfbf7;
+      --line: #d5ddca;
+      --muted: #63776d;
+      --accent: #dce879;
+      --jade: #dcefe6;
+      --mono: ui-monospace, monospace;
+      --sans: Inter, system-ui, sans-serif
+    }
+
+    * {
+      box-sizing: border-box
+    }
+
+    body {
+      margin: 0;
+      min-width: 320px;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: var(--sans)
+    }
+
+    button,
+    a {
+      font: inherit
+    }
+
+    .sidebar {
+      position: fixed;
+      inset: 0 auto 0 0;
+      width: 248px;
+      z-index: 5;
+      display: flex;
+      flex-direction: column;
+      padding: 26px 20px;
+      background: var(--ink);
+      color: #f8f7e9;
+      transition: transform .2s
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 11px
+    }
+
+    .brand-mark {
+      width: 38px;
+      height: 38px;
+      display: grid;
+      place-items: center;
+      border-radius: 11px;
+      background: var(--accent);
+      color: var(--ink);
+      font-weight: 800;
+      font-size: 20px
+    }
+
+    .brand-name {
+      font-size: 15px;
+      font-weight: 800
+    }
+
+    .brand-caption,
+    .mono,
+    .eyebrow {
+      font-family: var(--mono)
+    }
+
+    .brand-caption {
+      margin-top: 4px;
+      color: #9db2a7;
+      font-size: 9px;
+      letter-spacing: .15em;
+      text-transform: uppercase
+    }
+
+    .brand-state {
+      width: 7px;
+      height: 7px;
+      margin-left: auto;
+      border-radius: 50%;
+      background: var(--accent)
+    }
+
+    .workspace-label {
+      margin: 40px 10px 12px;
+      color: #9db2a7;
+      font: 10px var(--mono);
+      letter-spacing: .14em;
+      text-transform: uppercase
+    }
+
+    .nav-list {
+      display: grid;
+      gap: 6px
+    }
+
+    .nav-link {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      min-height: 42px;
+      padding: 10px 11px;
+      border-radius: 9px;
+      color: #c8d6cf;
+      text-decoration: none;
+      font-size: 12px;
+      font-weight: 700
+    }
+
+    .nav-link:hover {
+      background: #254c40
+    }
+
+    .nav-link.active {
+      background: var(--accent);
+      color: var(--ink)
+    }
+
+    .nav-icon {
+      width: 20px;
+      text-align: center
+    }
+
+    .nav-arrow,
+    .nav-badge {
+      margin-left: auto
+    }
+
+    .nav-badge {
+      padding: 2px 6px;
+      border-radius: 99px;
+      background: #c65e4f;
+      font: 10px var(--mono)
+    }
+
+    .sidebar-note {
+      margin-top: auto;
+      padding-top: 18px;
+      border-top: 1px solid #31594c;
+      color: #a9bbb1;
+      font-size: 10px;
+      line-height: 1.7
+    }
+
+    .sidebar-code {
+      margin-top: 14px;
+      font: 9px var(--mono);
+      letter-spacing: .13em
+    }
+
+    .sidebar-close {
+      display: none
+    }
+
+    .main {
+      min-height: 100vh;
+      margin-left: 248px
+    }
+
+    .topbar {
+      min-height: 76px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 16px 48px;
+      border-bottom: 1px solid var(--line)
+    }
+
+    .menu-toggle {
+      display: none
+    }
+
+    .breadcrumb {
+      display: flex;
+      gap: 9px;
+      color: var(--muted);
+      font-size: 11px
+    }
+
+    .breadcrumb a {
+      text-decoration: none
+    }
+
+    .topbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      margin-left: auto;
+      color: var(--muted);
+      font-size: 10px
+    }
+
+    .connection-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #c65e4f
+    }
+
+    .demo-badge {
+      padding: 7px 9px;
+      border: 1px solid var(--line);
+      border-radius: 99px;
+      background: var(--card);
+      font: 9px var(--mono);
+      text-transform: uppercase
+    }
+
+    .page-content {
+      max-width: 1280px;
+      margin: auto;
+      padding: 44px 48px 38px
+    }
+
+    .page-heading {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 24px;
+      padding-bottom: 27px;
+      border-bottom: 1px solid var(--line)
+    }
+
+    h1 {
+      margin: 10px 0 0;
+      font-size: clamp(2rem, 4vw, 3.2rem);
+      line-height: 1;
+      letter-spacing: -.07em
+    }
+
+    .page-heading p {
+      max-width: 600px;
+      margin: 14px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.7
+    }
+
+    .eyebrow {
+      color: var(--muted);
+      font-size: 9px;
+      letter-spacing: .14em;
+      text-transform: uppercase
+    }
+
+    .eyebrow.accent:before {
+      content: "";
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      margin-right: 8px;
+      border-radius: 50%;
+      background: #718c35
+    }
+
+    .panel-grid {
+      display: grid;
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+      gap: 18px;
+      margin-top: 24px
+    }
+
+    .panel {
+      min-width: 0;
+      padding: 22px;
+      border: 1px solid var(--line);
+      border-radius: 13px;
+      background: var(--card);
+      box-shadow: 0 12px 26px #183e340e
+    }
+
+    .span-5 {
+      grid-column: span 5
+    }
+
+    .span-7 {
+      grid-column: span 7
+    }
+
+    .span-12 {
+      grid-column: span 12
+    }
+
+    .panel-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 14px
+    }
+
+    .panel-title {
+      display: flex;
+      gap: 11px
+    }
+
+    .panel-icon {
+      width: 35px;
+      height: 35px;
+      display: grid;
+      place-items: center;
+      flex: none;
+      border-radius: 9px;
+      background: #eef0db;
+      color: #718c35
+    }
+
+    .panel h2 {
+      margin: 4px 0 0;
+      font-size: 17px
+    }
+
+    .panel-detail {
+      margin: 5px 0 0;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.5
+    }
+
+    .status-pill {
+      display: inline-flex;
+      gap: 7px;
+      align-items: center;
+      padding: 6px 9px;
+      border-radius: 99px;
+      color: #536c27;
+      background: #edf2d0;
+      font-size: 10px;
+      font-weight: 700;
+      white-space: nowrap
+    }
+
+    .status-pill:before {
+      content: "";
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: currentColor
+    }
+
+    .value-row {
+      display: flex;
+      align-items: end;
+      gap: 8px;
+      margin-top: 10px
+    }
+
+    .value {
+      font: 500 40px/1 var(--mono);
+      letter-spacing: -.08em
+    }
+
+    .unit {
+      margin-bottom: 4px;
+      color: var(--muted);
+      font: 12px var(--mono)
+    }
+
+    .detail-grid {
+      display: grid;
+      grid-template-columns: repeat(2, max-content);
+      gap: 18px;
+      margin-top: 19px;
+      padding-top: 15px;
+      border-top: 1px solid var(--line)
+    }
+
+    .detail-value {
+      margin-top: 5px;
+      color: #426a58;
+      font: 11px var(--mono)
+    }
+
+    .check-line {
+      margin-top: 14px;
+      color: #498067;
+      font-size: 11px
+    }
+
+    .range-graphic {
+      position: relative;
+      display: grid;
+      min-height: 155px;
+      place-items: center;
+      overflow: hidden;
+      border-radius: 9px;
+      background: #e9eee0
+    }
+
+    .range-graphic:before,
+    .range-graphic:after {
+      content: "";
+      position: absolute;
+      opacity: .7
+    }
+
+    .range-graphic:before {
+      width: 100%;
+      border-top: 1px dashed #aab89b
+    }
+
+    .range-graphic:after {
+      height: 100%;
+      border-left: 1px dashed #aab89b
+    }
+
+    .range-ring {
+      position: absolute;
+      border: 1px solid #aab89b;
+      border-radius: 50%
+    }
+
+    .range-ring.one {
+      width: 112px;
+      height: 112px
+    }
+
+    .range-ring.two {
+      width: 76px;
+      height: 76px
+    }
+
+    .range-point {
+      z-index: 1;
+      width: 43px;
+      height: 43px;
+      border: 1px solid #718c35;
+      border-radius: 50%;
+      background: #dce87955
+    }
+
+    .range-point:after {
+      content: "";
+      display: block;
+      width: 25px;
+      height: 25px;
+      margin: 8px;
+      border-radius: 50%;
+      background: #718c35
+    }
+
+    .hand-status {
+      position: absolute;
+      z-index: 2;
+      bottom: 14px;
+      display: inline-flex;
+      gap: 7px;
+      align-items: center;
+      padding: 6px 10px;
+      border-radius: 99px;
+      background: #fcfbf7;
+      border: 1px solid var(--line);
+      font: 700 10px var(--sans);
+      white-space: nowrap
+    }
+
+    .hand-status:before {
+      content: "";
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: currentColor
+    }
+
+    .hand-status.detected {
+      color: #536c27
+    }
+
+    .hand-status.not-detected {
+      color: #8a7a4a
+    }
+
+    .range-label,
+    .range-max {
+      position: absolute;
+      color: #526f5f;
+      font: 9px var(--mono);
+      text-transform: uppercase
+    }
+
+    .range-label {
+      left: 11px;
+      bottom: 10px
+    }
+
+    .range-max {
+      right: 11px;
+      top: 10px
+    }
+
+    .demo-note {
+      margin-top: 20px;
+      padding: 11px 12px;
+      border-radius: 9px;
+      background: #edf2e4;
+      color: #456a58;
+      font-size: 11px;
+      line-height: 1.6
+    }
+
+    .readiness-details {
+      display: grid;
+      gap: 9px;
+      margin-top: 18px;
+      padding-top: 17px;
+      border-top: 1px solid var(--line)
+    }
+
+    .readiness-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      color: var(--muted);
+      font-size: 11px
+    }
+
+    .readiness-row strong {
+      color: var(--ink);
+      font: 11px var(--mono)
+    }
+
+    .ghost-button {
+      padding: 9px 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--card);
+      color: #426657;
+      font-weight: 700;
+      font-size: 10px
+    }
+
+    .table-wrap {
+      margin-top: 19px;
+      overflow: auto;
+      border: 1px solid var(--line);
+      border-radius: 9px
+    }
+
+    table {
+      width: 100%;
+      min-width: 500px;
+      border-collapse: collapse;
+      font-size: 11px
+    }
+
+    th,
+    td {
+      padding: 12px 13px;
+      border-bottom: 1px solid var(--line);
+      text-align: left
+    }
+
+    th {
+      color: var(--muted);
+      font: 9px var(--mono);
+      text-transform: uppercase
+    }
+
+    td {
+      color: #48695a
+    }
+
+    tr:last-child td {
+      border: 0
+    }
+
+    .empty-state {
+      padding: 26px;
+      color: var(--muted);
+      font-size: 12px;
+      text-align: center
+    }
+
+    .footer {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 28px;
+      padding-top: 16px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 9px
+    }
+
+    .footer-demo:before {
+      content: "";
+      display: inline-block;
+      width: 7px;
+      height: 7px;
+      margin-right: 8px;
+      border-radius: 50%;
+      background: #c65e4f
+    }
+
+    .drawer-backdrop {
+      display: none
+    }
+
+    @media(max-width:1040px) {
+      .sidebar {
+        width: 224px
+      }
+
+      .main {
+        margin-left: 224px
+      }
+
+      .topbar,
+      .page-content {
+        padding-left: 30px;
+        padding-right: 30px
+      }
+
+      .span-5,
+      .span-7 {
+        grid-column: span 12
+      }
+    }
+
+    @media(max-width:900px) {
+      .sidebar {
+        width: min(280px, 86vw);
+        transform: translateX(-100%)
+      }
+
+      .sidebar.open {
+        transform: translateX(0)
+      }
+
+      .sidebar-close {
+        display: block;
+        margin-left: auto;
+        border: 0;
+        background: transparent;
+        color: white;
+        font-size: 22px
+      }
+
+      .drawer-backdrop {
+        display: block;
+        position: fixed;
+        inset: 0;
+        z-index: 4;
+        background: #183e3460;
+        opacity: 0;
+        pointer-events: none
+      }
+
+      .drawer-backdrop.show {
+        opacity: 1;
+        pointer-events: auto
+      }
+
+      .main {
+        margin: 0
+      }
+
+      .menu-toggle {
+        display: grid;
+        width: 38px;
+        height: 38px;
+        place-items: center;
+        border: 1px solid var(--line);
+        border-radius: 9px;
+        background: var(--card)
+      }
+
+      .topbar {
+        min-height: 68px;
+        padding: 14px 18px
+      }
+
+      .breadcrumb {
+        display: none
+      }
+
+      .topbar-actions>.connection-dot,
+      .topbar-actions>span:nth-child(2) {
+        display: none
+      }
+
+      .page-content {
+        padding: 31px 18px
+      }
+
+      .page-heading {
+        display: block
+      }
+
+      .panel {
+        padding: 18px
+      }
+
+      .footer {
+        flex-direction: column;
+        gap: 8px
+      }
+    }
+
+    @media(max-width:430px) {
+      .readiness-row {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 4px
+      }
+    }
+  </style>
+  <style>
+    @media(max-width:600px) {
+
+      [style*="grid-template-columns"] {
+        grid-template-columns: 1fr !important
+      }
+    }
+  </style>
+  <link rel="icon" href="data:,">
+</head>
+
+<body>
+  <div class="drawer-backdrop"></div>
+  <aside class="sidebar" aria-label="Workspace navigation">
+
+    <div class="brand">
+      <div class="brand-mark">S</div>
+      <div>
+        <div class="brand-name">Sensitizer</div>
+        <div class="brand-caption">operations console</div>
+      </div><span class="brand-state"></span><button class="sidebar-close" aria-label="Close menu">×</button>
+    </div>
+    <div class="workspace-label">Workspace</div>
+
+    <nav class="nav-list"><a class="nav-link" href="./index.html"><span class="nav-icon">◉</span>Overview<span
+          class="nav-arrow">›</span></a><a class="nav-link active" href="./hand-detection.html"><span
+          class="nav-icon">⌖</span>Hand Detection<span class="nav-arrow">›</span></a><a class="nav-link"
+        href="./sanitizer-supply.html"><span class="nav-icon">◈</span>Sanitizer Supply<span
+          class="nav-arrow">›</span></a><a class="nav-link" href="./spill-safety.html"><span
+          class="nav-icon">≈</span>Spill Safety<span class="nav-arrow">›</span></a><a class="nav-link"
+        href="./notifications.html"><span class="nav-icon">♧</span>Notifications<span class="nav-badge"
+          data-unread-badge>3</span></a><a class="nav-link" href="./device-context.html"><span
+          class="nav-icon">▤</span>Device &amp; Context<span class="nav-arrow">›</span></a></nav>
+
+    <div class="sidebar-note">ⓘ Demo readings only<br>There is no live hardware connection in this workspace.
+      <div class="sidebar-code">TechnoCare</div>
+    </div>
+  </aside>
+  <main class="main">
+    <header class="topbar"><button class="menu-toggle" aria-label="Open workspace menu"
+        aria-expanded="false">☰</button>
+      <div class="breadcrumb"><a href="./index.html">SENSITIZER</a><span>›</span><span>Hand Detection</span></div>
+      <div class="topbar-actions"><span class="connection-dot"></span><span>no live connection</span><span
+          class="demo-badge">demo readings</span></div>
+    </header>
+
+    <div class="page-content">
+      <section class="page-heading">
+        <div>
+          <div class="eyebrow accent">01 / TOF RANGE</div>
+          <h1>Hand detection</h1>
+          <p>Review the supplied distance reading and the activation band. This project has no camera or sensor
+            input connected.</p>
+        </div><span class="status-pill">Demo reading · ready</span>
+      </section>
+
+      <section class="panel-grid">
+
+        <section class="panel span-7">
+          <div class="panel-header">
+            <div class="panel-title">
+              <div class="panel-icon">⌖</div>
+              <div>
+                <div class="eyebrow">SENSOR STATUS</div>
+                <h2>Distance band</h2>
+                <p class="panel-detail">VL53L0X time-of-flight reference</p>
+              </div>
+            </div><span class="status-pill">Within band</span>
+          </div>
+
+          <div
+            style="display:grid;grid-template-columns:minmax(150px,.8fr) minmax(190px,1.2fr);gap:20px;align-items:center;margin-top:25px">
+            <div>
+              <div class="eyebrow">Supplied reading</div>
+              <div class="value-row"><span class="value">14.8</span><span class="unit">cm</span></div>
+              <div class="check-line">Within ≤ 18 cm near threshold</div>
+              <div class="detail-grid">
+                <div>
+                  <div class="eyebrow">operating range</div>
+                  <div class="detail-value">6—80 cm</div>
+                </div>
+                <div>
+                  <div class="eyebrow">sample rate</div>
+                  <div class="detail-value">20 Hz</div>
+                </div>
+              </div>
+            </div>
+            <div class="range-graphic" aria-label="Hand detection status indicator; no camera or sensor connected">
+              <div class="range-ring one"></div>
+              <div class="range-ring two"></div>
+              <div class="range-point"></div>
+              <div class="hand-status detected">Hands detected</div><span class="range-label">visual only</span><span
+                class="range-max">6—80 cm</span>
+            </div>
+          </div>
+
+          <div class="demo-note"><strong>Visual-only indicator.</strong> The "Hands detected" badge reflects the
+            supplied reading against the ≤ 18 cm threshold. It does not read a camera, change the 14.8 cm result, or
+            start the dispenser.</div>
+        </section>
+
+        <section class="panel span-5">
+          <div class="panel-header">
+            <div>
+              <div class="eyebrow">READING INTERPRETATION</div>
+              <h2>What this means</h2>
+            </div><span class="panel-icon">ⓘ</span>
+          </div>
+
+          <div class="readiness-details">
+            <div class="readiness-row"><span>Hand near threshold</span><strong>≤ 18 cm</strong></div>
+            <div class="readiness-row"><span>Supplied distance</span><strong>14.8 cm</strong></div>
+            <div class="readiness-row"><span>Result</span><strong>Activation band</strong></div>
+          </div>
+
+          <div class="demo-note">A live installation would require a connected time-of-flight sensor and a separate
+            control layer. Neither is present here.</div>
+        </section>
+
+        <section class="panel span-12">
+          <div class="panel-header">
+            <div>
+              <div class="eyebrow">DEMO EVENT LOG</div>
+              <h2>Sample hand-use records</h2>
+              <p class="panel-detail">Illustrative records supplied for interface review.</p>
+            </div><button class="ghost-button" id="clearLogs" type="button">Clear sample logs</button>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Log</th>
+                  <th>Date / time</th>
+                  <th>Duration</th>
+                </tr>
+              </thead>
+              <tbody id="logRows"></tbody>
+            </table>
+          </div>
+        </section>
+
+      </section>
+      <footer class="footer"><span class="footer-demo">Demo mode · values are illustrative, not live telemetry</span><span class="mono">TechnoCare</span>
+      </footer>
+    </div>
+  </main>
+  <script>
+    (() => {
+      const logs = [
+          ['Sep 23, 2026 · 14:32:18', '3.4 s'],
+          ['Sep 23, 2026 · 14:29:05', '2.1 s'],
+          ['Sep 23, 2026 · 14:21:47', '4.8 s']
+        ],
+        rows = document.querySelector('#logRows');
+      const render = () => {
+        rows.innerHTML = logs.length ? logs.map((log, i) =>
+          `<tr><td class="mono">#${String(logs.length-i).padStart(3,'0')}</td><td>${log[0]}</td><td class="mono">${log[1]}</td></tr>`
+        ).join('') :
+          '<tr><td colspan="3"><div class="empty-state">No sample logs remain. This does not affect the supplied sensor reading.</div></td></tr>'
+      };
+      render();
+      document.querySelector('#clearLogs').addEventListener('click', () => {
+        logs.length = 0;
+        render()
+      });
+      const side = document.querySelector('.sidebar'),
+        back = document.querySelector('.drawer-backdrop'),
+        open = document.querySelector('.menu-toggle'),
+        close = document.querySelector('.sidebar-close'),
+        set = v => {
+          side.classList.toggle('open', v);
+          back.classList.toggle('show', v);
+          open.setAttribute('aria-expanded', String(v))
+        };
+      open.addEventListener('click', () => set(true));
+      close.addEventListener('click', () => set(false));
+      back.addEventListener('click', () => set(false));
+      document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') set(false)
+      });
+      console.info('Sensitizer standalone HTML loaded. Use F12 → Sources to inspect this page code.');
+    })();
+  </script>
+</body>
+
+</html>
